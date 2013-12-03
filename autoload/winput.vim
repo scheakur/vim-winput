@@ -26,7 +26,8 @@ function! s:open(name, func, opts)
 
 	call s:open_window(a:name, buf_nr, win_height)
 	call s:setup_buffer(a:name)
-	call s:setup_commands_and_keys(a:name, a:func)
+	call s:setup_commands_and_keys(a:name, a:func,
+	\	get(a:opts, 'on_validate', function('s:no_validate')))
 
 	call get(a:opts, 'on_open', function('s:nop'))()
 
@@ -34,8 +35,13 @@ function! s:open(name, func, opts)
 endfunction
 
 
-function! s:nop()
+function! s:nop(...)
 	" No operation
+endfunction
+
+
+function! s:no_validate(...)
+	return [1, ""]
 endfunction
 
 
@@ -56,12 +62,19 @@ function! s:open_window(name, buf_nr, height)
 		file `="[" . a:name . "]"`
 		let s:buf_nr[a:name] = bufnr('%')
 		call feedkeys('i', 'n')
-	elseif bufwinnr(a:buf_nr) == -1
+		return
+	endif
+
+	if bufwinnr(a:buf_nr) == -1
 		execute 'belowright' a:height . 'split'
 		execute a:buf_nr . 'buffer'
 		call feedkeys('i', 'n')
-	elseif bufwinnr(a:buf_nr) != bufwinnr('%')
+		return
+	endif
+
+	if bufwinnr(a:buf_nr) != bufwinnr('%')
 		execute bufwinnr(a:buf_nr) . 'wincmd w'
+		return
 	endif
 endfunction
 
@@ -76,10 +89,10 @@ function! s:setup_buffer(name)
 endfunction
 
 
-function! s:setup_commands_and_keys(name, func)
+function! s:setup_commands_and_keys(name, func, validate)
 	let set_command = printf(
-	\	'command! -buffer -nargs=0 Write  call s:write("%s", %s)',
-	\	a:name, string(a:func))
+	\	'command! -buffer -nargs=0 Write  call s:write("%s", %s, %s)',
+	\	a:name, string(a:func), string(a:validate))
 
 	execute set_command
 
@@ -95,13 +108,21 @@ function! s:setup_commands_and_keys(name, func)
 endfunction
 
 
-function! s:write(name, func)
+function! s:write(name, func, validate)
 	let text = join(getbufline('%', 1, '$'), "\n")
 	" remove trailing line breaks
 	let text = substitute(text, '\n\+$', '', '')
 
-	call a:func(text)
+	let [ok, msg] = a:validate(text)
 
+	if !ok
+		echohl WarningMsg
+		echomsg msg
+		echohl None
+		return
+	endif
+
+	call a:func(text)
 	call s:after_write(a:name)
 endfunction
 
