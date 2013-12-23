@@ -91,7 +91,7 @@ endfunction
 
 function! s:setup_commands_and_keys(name, func, validate)
 	let set_command = printf(
-	\	'command! -buffer -nargs=0 Write  call s:write("%s", %s, %s)',
+	\	'command! -buffer -bang -nargs=0 Write  call s:write("%s", %s, %s, <bang>0)',
 	\	a:name, string(a:func), string(a:validate))
 
 	execute set_command
@@ -108,12 +108,12 @@ function! s:setup_commands_and_keys(name, func, validate)
 endfunction
 
 
-function! s:write(name, func, validate)
+function! s:write(name, func, validate, bang)
 	let text = join(getbufline('%', 1, '$'), "\n")
 	" remove trailing line breaks
 	let text = substitute(text, '\n\+$', '', '')
 
-	let [ok, msg] = a:validate(text)
+	let [ok, msg] = a:validate(text, a:bang)
 
 	if !ok
 		echohl WarningMsg
