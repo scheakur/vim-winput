@@ -11,7 +11,7 @@ endfunction
 
 
 function! winput#escape(text)
-	let escaped = substitute(a:text, '\(["`]\)', '\\\1', 'g')
+	let escaped = substitute(a:text, '\(["`$]\)', '\\\1', 'g')
 	return '"' . escaped . '"'
 endfunction
 
