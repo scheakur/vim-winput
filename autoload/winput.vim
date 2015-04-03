@@ -91,13 +91,13 @@ endfunction
 
 function! s:setup_commands_and_keys(name, func, validate)
 	let set_command = printf(
-	\	'command! -buffer -bang -nargs=0 Write  call s:write("%s", %s, %s, <bang>0)',
+	\	'command! -buffer -bang -nargs=0 WinputWrite  call s:write("%s", %s, %s, <bang>0)',
 	\	a:name, string(a:func), string(a:validate))
 
 	execute set_command
 
-	nnoremap <buffer> <silent> <C-CR>  :Write<CR>
-	inoremap <buffer> <silent> <C-CR>  <ESC>:Write<CR>
+	nnoremap <buffer> <silent> <C-CR>  :WinputWrite<CR>
+	inoremap <buffer> <silent> <C-CR>  <ESC>:WinputWrite<CR>
 	nnoremap <buffer> q  <C-w>c
 
 	let reset_buf_nr = printf(
