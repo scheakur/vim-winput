@@ -26,8 +26,11 @@ function! s:open(name, func, opts)
 
 	call s:open_window(a:name, buf_nr, win_height)
 	call s:setup_buffer(a:name)
-	call s:setup_commands_and_keys(a:name, a:func,
-	\	get(a:opts, 'on_validate', function('s:no_validate')))
+
+	if get(a:opts, 'use_default_ui', '1')
+		call s:setup_commands_and_keys(a:name, a:func,
+		\	get(a:opts, 'on_validate', function('s:no_validate')))
+	endif
 
 	call get(a:opts, 'on_open', function('s:nop'))()
 
